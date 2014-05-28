@@ -1,24 +1,30 @@
 import json, requests, argparse
 
 def download(pics, opt):
+	i = 0
 	for photo in pics:
-	        photoUrl = photo['highres_link']
+		i = i + 1
+		photoUrl = photo['highres_link']
 
-	        if(opt['verbose']):
-	                print('Downloading ' + photoUrl + '...')
+		if(opt['verbose']):
+			print('Downloading ' + photoUrl + '...')
+		elif(i % 10 == 0):
+			print('|', end='', flush=True)
+		else:
+			print('.', end='', flush=True)
 
-	        presp = requests.get(photoUrl)
-	        filename = photoUrl.split('/')[-1]
-	        file = filename
+		presp = requests.get(photoUrl)
+		filename = photoUrl.split('/')[-1]
+		file = filename
 
-	        if(opt['dir']):
-	                file = opt['dir'] + filename
+		if(opt['dir']):
+			file = opt['dir'] + filename
 
-	        with open(file, 'wb') as f:
-        	        for chunk in presp.iter_content(chunk_size=1024):
-                	        if chunk:
-                        	        f.write(chunk)
-                                	f.flush()
+		with open(file, 'wb') as f:
+			for chunk in presp.iter_content(chunk_size=1024):
+				if chunk:
+					f.write(chunk)
+					f.flush()
 
 def retrieve(opt):
 	url = 'https://api.meetup.com/2/photos?'
@@ -53,20 +59,25 @@ parser.add_argument('-p', '--page', help='The number of responses that should be
 parser.add_argument('-v', '--verbose', help='Runs the program in verbose mode.', action='store_true', default=0)
 parser.add_argument('-o', '--offset', help='The number of pictures to skip before starting to return the photographs.', dest='offset', type=int)
 args = vars(parser.parse_args())
+
 args['total'] = -1
+args['count'] = 0
+args['offset'] = 0
 
 print('Starting the run...')
 
-while((args['count'] + args['offset'] < args['total']) || args['total'] < 0):
+while((args['count'] + args['offset'] < args['total']) or (args['total'] < 0)):
 	resp = retrieve(args)
 
 	meta = resp['meta']
 	args['offset'] = args['count']
 	args['count'] = int(meta['count'])
 	args['total'] = int(meta['total_count'])
+	args['pageCnt'] = args['total'] - args['count'] - args['offset']
 
 	end = args['offset'] + args['count']
-	print('Starting the download for photographs ' + args['offset'] + ' to ' + end + ' of ' + args['total'] + '...')
+	print('Starting the download for photographs ' + str(args['offset']) + ' to ' + str(end) + ' of ' + str(args['total']) + '', end='', flush=True)
 	download(resp['results'], args)
 
+print()
 print('Download complete')
