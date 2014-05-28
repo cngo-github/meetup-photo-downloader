@@ -8,10 +8,8 @@ def download(pics, opt):
 
 		if(opt['verbose']):
 			print('Downloading ' + photoUrl + '...')
-		elif(i % 10 == 0):
-			print('|', end='', flush=True)
-		else:
-			print('.', end='', flush=True)
+		elif(i % opt['markInterval'] == 0 and opt['markInterval'] >= 0):
+			print(opt['mark'], end='', flush=True)
 
 		presp = requests.get(photoUrl)
 		filename = photoUrl.split('/')[-1]
@@ -58,6 +56,8 @@ parser.add_argument('-d', '--dir', help='The directory to put the downloaded pho
 parser.add_argument('-p', '--page', help='The number of responses that should be returned per page.', dest='pageCnt', type=int)
 parser.add_argument('-v', '--verbose', help='Runs the program in verbose mode.', action='store_true', default=0)
 parser.add_argument('-o', '--offset', help='The number of pictures to skip before starting to return the photographs.', dest='offset', type=int)
+parser.add_argument('-m', '--mark', help='The marker to be printed to screen to indicate activity.', dest='mark', default='.')
+parser.add_argument('-n', '--markInterval', help='The intervals that an activity indicator should be printed to the screen.', dest='markInterval', type=int, default=1)
 args = vars(parser.parse_args())
 
 args['total'] = -1
@@ -76,6 +76,7 @@ while((args['count'] + args['offset'] < args['total']) or (args['total'] < 0)):
 	args['pageCnt'] = args['total'] - args['count'] - args['offset']
 
 	end = args['offset'] + args['count']
+	print()
 	print('Starting the download for photographs ' + str(args['offset']) + ' to ' + str(end) + ' of ' + str(args['total']) + '', end='', flush=True)
 	download(resp['results'], args)
 
