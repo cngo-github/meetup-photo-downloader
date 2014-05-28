@@ -63,20 +63,21 @@ args = vars(parser.parse_args())
 args['total'] = -1
 args['count'] = 0
 args['offset'] = 0
+args['cntDone'] = 0
 
 print('Starting the run...')
 
-while(args['offset'] < args['total'] or args['total'] < 0):
+while(args['cntDone'] < args['total'] or args['total'] < 0):
 	resp = retrieve(args)
 
 	meta = resp['meta']
 	args['count'] = int(meta['count'])
-	args['offset'] = args['offset'] + int(meta['count'])
+	args['cntDone'] = args['cntDone'] + int(meta['count'])
+	args['offset'] = args['offset'] + 1
 	args['total'] = int(meta['total_count'])
-	args['pageCnt'] = args['total'] - args['offset']
 
 	print()
-	print('Starting the download for photographs ' + str(args['offset'] - int(meta['count'])) + ' to ' + str(args['offset']) + ' of ' + str(args['total']) + '', end='', flush=True)
+	print('Starting the download for photographs ' + str(args['cntDone'] - int(meta['count'])) + ' to ' + str(args['cntDone']) + ' of ' + str(args['total']) + '', end='', flush=True)
 	download(resp['results'], args)
 
 print()
