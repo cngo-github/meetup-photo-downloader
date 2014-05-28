@@ -1,18 +1,18 @@
 import json, requests, argparse
 
-def download(pics, dir, verbose):
+def download(pics, opt):
 	for photo in pics:
 	        photoUrl = photo['highres_link']
 
-	        if(verbose):
+	        if(opt['verbose']):
 	                print('Downloading ' + photoUrl + '...')
 
 	        presp = requests.get(photoUrl)
 	        filename = photoUrl.split('/')[-1]
 	        file = filename
 
-	        if(dir):
-	                file = dir + filename
+	        if(opt['dir']):
+	                file = opt['dir'] + filename
 
 	        with open(file, 'wb') as f:
         	        for chunk in presp.iter_content(chunk_size=1024):
@@ -20,23 +20,23 @@ def download(pics, dir, verbose):
                         	        f.write(chunk)
                                 	f.flush()
 
-def retrieve(key, albumId, eventId, cntPerPage, offset):
+def retrieve(opt):
 	url = 'https://api.meetup.com/2/photos?'
 
-	if(key):
-	        url = url + '&key=' + key
+	if(opt['key']):
+	        url = url + '&key=' + opt['key']
 
-	if(albumId):
-	        url = url + '&photo_album_id=' + albumId
+	if(opt['aid']):
+	        url = url + '&photo_album_id=' + opt['aid']
 
-	if(eventId):
-	        url = url + '&event_id=' + eventId
+	if(opt['eid']):
+	        url = url + '&event_id=' + opt['eid']
 
-	if(cntPerPage):
-	        url = url + '&page=' + str(cntPerPage)
+	if(opt['pageCnt']):
+	        url = url + '&page=' + str(opt['pageCnt'])
 
-	if(offset):
-		url = url + '&offset=' + str(offset)
+	if(opt['offset']):
+		url = url + '&offset=' + str(opt['offset'])
 
 	return requests.get(url).json()
 
@@ -53,20 +53,20 @@ parser.add_argument('-p', '--page', help='The number of responses that should be
 parser.add_argument('-v', '--verbose', help='Runs the program in verbose mode.', action='store_true', default=0)
 parser.add_argument('-o', '--offset', help='The number of pictures to skip before starting to return the photographs.', dest='offset', type=int)
 args = vars(parser.parse_args())
+args['total'] = -1
 
-key = args['key']
-aid = args['aid']
-eid = args['eid']
-pageCnt = args['pageCnt']
-dir = args['dir']
-verbose = args['verbose']
+print('Starting the run...')
 
-while((args['count'] + args['offset'] < args['total']) && args['total'] >= 0):
-	resp = retrieve(args['key'], args['aid'], args['eid'], args['pageCnt'],
-cnt = int(meta['count'])
-total = int(meta['total_count'])
+while((args['count'] + args['offset'] < args['total']) || args['total'] < 0):
+	resp = retrieve(args)
 
+	meta = resp['meta']
+	args['offset'] = args['count']
+	args['count'] = int(meta['count'])
+	args['total'] = int(meta['total_count'])
 
-print('Starting the download of the ' + str(len(pics)) + ' photographs...')
-download(pics, dir, verbose)
+	end = args['offset'] + args['count']
+	print('Starting the download for photographs ' + args['offset'] + ' to ' + end + ' of ' + args['total'] + '...')
+	download(resp['results'], args)
+
 print('Download complete')
