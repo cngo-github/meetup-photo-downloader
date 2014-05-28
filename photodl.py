@@ -41,7 +41,7 @@ def retrieve(opt):
 
 	if(opt['offset']):
 		url = url + '&offset=' + str(opt['offset'])
-
+	print(url)
 	return requests.get(url).json()
 
 parser = argparse.ArgumentParser(
@@ -66,18 +66,17 @@ args['offset'] = 0
 
 print('Starting the run...')
 
-while((args['count'] + args['offset'] < args['total']) or (args['total'] < 0)):
+while(args['offset'] < args['total'] or args['total'] < 0):
 	resp = retrieve(args)
 
 	meta = resp['meta']
-	args['offset'] = args['count']
 	args['count'] = int(meta['count'])
+	args['offset'] = args['offset'] + int(meta['count'])
 	args['total'] = int(meta['total_count'])
-	args['pageCnt'] = args['total'] - args['count'] - args['offset']
+	args['pageCnt'] = args['total'] - args['offset']
 
-	end = args['offset'] + args['count']
 	print()
-	print('Starting the download for photographs ' + str(args['offset']) + ' to ' + str(end) + ' of ' + str(args['total']) + '', end='', flush=True)
+	print('Starting the download for photographs ' + str(args['offset'] - int(meta['count'])) + ' to ' + str(args['offset']) + ' of ' + str(args['total']) + '', end='', flush=True)
 	download(resp['results'], args)
 
 print()
