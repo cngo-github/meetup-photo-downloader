@@ -41,7 +41,7 @@ def retrieve(opt):
 
 	if(opt['offset']):
 		url = url + '&offset=' + str(opt['offset'])
-	print(url)
+
 	return requests.get(url).json()
 
 parser = argparse.ArgumentParser(
